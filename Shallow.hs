@@ -217,10 +217,10 @@ printPlot width height region = putStrLn $ plot width height region
     5.0
 -}
 promoteUnary :: (a -> b) -> Pointed a -> Pointed b
-promoteUnary = undefined
+promoteUnary = (.)
 
 promoteBinary :: (a -> b -> c) -> Pointed a -> Pointed b -> Pointed c
-promoteBinary f pointed1 pointed2 point = undefined
+promoteBinary f pointed1 pointed2 point = f (pointed1 point) (pointed2 point)
 
 {-
     *** TODO ***
@@ -255,13 +255,13 @@ promoteBinary f pointed1 pointed2 point = undefined
     .....
 -}
 complement :: Region -> Region
-complement = undefined
+complement = promoteUnary (not $)
 
 union :: Region -> Region -> Region
-union = undefined
+union = promoteBinary (||)
 
 intersection :: Region -> Region -> Region
-intersection = undefined
+intersection = promoteBinary(&&)
 
 {-
     *** TODO ***
@@ -281,7 +281,7 @@ intersection = undefined
     (0.0,0.0)
 -}
 translation :: Float -> Float -> Transformation
-translation tx ty = undefined
+translation tx ty = \(x, y) -> (x - tx, y - ty)
 
 {-
     *** TODO ***
@@ -296,7 +296,7 @@ translation tx ty = undefined
     (1.0,1.0)
 -}
 scaling :: Float -> Transformation
-scaling factor = undefined
+scaling factor = \(x, y) -> (x / factor, y / factor)
 
 {-
     *** TODO ***
@@ -323,7 +323,7 @@ scaling factor = undefined
     .....
 -}
 applyTransformation :: Transformation -> Region -> Region
-applyTransformation = undefined
+applyTransformation = flip promoteUnary
 
 {-
     *** TODO ***
@@ -351,7 +351,7 @@ applyTransformation = undefined
         applyTransformation (scaling 0.5) (circle 2)
 -}
 combineTransformations :: [Transformation] -> Transformation
-combineTransformations = undefined
+combineTransformations = foldl (flip promoteUnary) id
 
 {-
     *** TODO ***
