@@ -49,7 +49,7 @@ type Transformation = Point -> Point
     False
 -}
 inside :: Point -> Region -> Bool
-inside = undefined
+inside = flip ($)
 
 {-
     *** TODO ***
@@ -75,8 +75,7 @@ inside = undefined
     False
 -}
 fromPoints :: [Point] -> Region
-fromPoints = undefined
-
+fromPoints = foldr (\p -> \acc -> \x -> (p == x) || acc x) (const False)
 {-
     *** TODO ***
 
@@ -100,7 +99,10 @@ fromPoints = undefined
     False
 -}
 rectangle :: Float -> Float -> Region
-rectangle width height = undefined
+rectangle width height = \p ->
+    let (x, y) = p
+        interval t a b = t >= a && t <= b
+    in interval x (- (width / 2)) (width / 2) && interval y (- (height / 2)) (height / 2)
 
 {-
     *** TODO ***
@@ -123,7 +125,10 @@ rectangle width height = undefined
     False
 -}
 circle :: Float -> Region
-circle radius = undefined
+circle radius = \p ->
+    let (x, y) = p
+        originDist = sqrt (x ^ 2 + y ^ 2)
+    in originDist <= radius
 
 {-
     *** TODO ***
@@ -173,7 +178,13 @@ circle radius = undefined
     ..*..
 -}
 plot :: Int -> Int -> Region -> String
-plot width height region = undefined
+plot intWidth intHeight region =
+    let width = fromIntegral intWidth 
+        height = fromIntegral intHeight
+        draw p = if (inside p region) then '*' else '.'
+        rows = [[draw (fromIntegral x, fromIntegral y) | x <- [-width .. width]] | y <- [-height .. height]]
+    in intercalate "\n" (reverse rows)
+
 
 {-
     Utilizați această funcție pentru vizualizarea diagramelor,
