@@ -50,7 +50,7 @@ type Transformation = Point -> Point
 -}
 inside :: Point -> Region -> Bool
 inside = flip ($)
-
+-- intoarce parametrii
 {-
     *** TODO ***
 
@@ -74,6 +74,8 @@ inside = flip ($)
     > inside (0, 1) $ fromPoints [(0, 0), (1, 1)]  -- echivalentă cu anterioara
     False
 -}
+-- acc starea regiunii; punctul x pe care il evaluam daca se afla in int reg
+-- construiesc o regiune dintr-o lista de puncte
 fromPoints :: [Point] -> Region
 fromPoints = foldr (\p -> \acc -> \x -> (p == x) || acc x) (const False)
 {-
@@ -101,7 +103,7 @@ fromPoints = foldr (\p -> \acc -> \x -> (p == x) || acc x) (const False)
 rectangle :: Float -> Float -> Region
 rectangle width height = \p ->
     let (x, y) = p
-        interval t a b = t >= a && t <= b
+        interval t a b = t >= a && t <= b --verific daca ma aflu intr-un interval
     in interval x (- (width / 2)) (width / 2) && interval y (- (height / 2)) (height / 2)
 
 {-
@@ -129,7 +131,8 @@ circle radius = \p ->
     let (x, y) = p
         originDist = sqrt (x ^ 2 + y ^ 2)
     in originDist <= radius
-
+-- daca distanta de la origne la punctul x este mai mica sau egala cu raza cercului
+-- atunci punctul x se afla in cerc
 {-
     *** TODO ***
 
@@ -184,6 +187,12 @@ plot intWidth intHeight region =
         draw p = if (inside p region) then '*' else '.'
         rows = [[draw (fromIntegral x, fromIntegral y) | x <- [-width .. width]] | y <- [-height .. height]]
     in intercalate "\n" (reverse rows)
+-- pentru fiecare punct de pe suprafata de desenare verific daca se afla in regiune
+-- daca da pun '*' altfel pun '.'
+-- creez o lista de liste de caractere
+-- intercalate "\n" (reverse rows) -> concatenez listele de caractere si le afisez pe cate o linie
+-- reverse rows -> afisez de la y-ul cel mai mare la cel mai mic
+-- intercalate "\n" -> concatenez listele de caractere si le afisez pe cate o linie
 
 
 {-
@@ -192,6 +201,10 @@ plot intWidth intHeight region =
 -}
 printPlot :: Int -> Int -> Region -> IO ()
 printPlot width height region = putStrLn $ plot width height region
+-- afisez diagrama
+-- plot -> creeaza diagrama
+-- putStrLn -> afiseaza diagrama
+-- width, height -> dimensiunile suprafetei de desenare
 
 {-
     *** TODO ***
@@ -221,6 +234,7 @@ promoteUnary = (.)
 
 promoteBinary :: (a -> b -> c) -> Pointed a -> Pointed b -> Pointed c
 promoteBinary f pointed1 pointed2 point = f (pointed1 point) (pointed2 point)
+-- f (pointed1 point) (pointed2 point) -> aplic functia f pe rezultatele obtinute din pointed1 si pointed2
 
 {-
     *** TODO ***
@@ -259,6 +273,7 @@ complement = promoteUnary (not $)
 
 union :: Region -> Region -> Region
 union = promoteBinary (||)
+-- aplic functia pe rezultatele obtinute din pointed1 si pointed2
 
 intersection :: Region -> Region -> Region
 intersection = promoteBinary(&&)
@@ -282,6 +297,7 @@ intersection = promoteBinary(&&)
 -}
 translation :: Float -> Float -> Transformation
 translation tx ty = \(x, y) -> (x - tx, y - ty)
+-- scad deplasamentele din coordonatele punctului transformat
 
 {-
     *** TODO ***
@@ -297,6 +313,7 @@ translation tx ty = \(x, y) -> (x - tx, y - ty)
 -}
 scaling :: Float -> Transformation
 scaling factor = \(x, y) -> (x / factor, y / factor)
+-- impart coordonatele punctului transformat la factorul de scalare
 
 {-
     *** TODO ***
@@ -324,6 +341,7 @@ scaling factor = \(x, y) -> (x / factor, y / factor)
 -}
 applyTransformation :: Transformation -> Region -> Region
 applyTransformation = flip promoteUnary
+-- aplic functia pe rezultatul obtinut din pointed
 
 {-
     *** TODO ***
@@ -352,6 +370,7 @@ applyTransformation = flip promoteUnary
 -}
 combineTransformations :: [Transformation] -> Transformation
 combineTransformations = foldl (flip promoteUnary) id
+-- aplic functia pe rezultatul obtinut din pointed
 
 {-
     *** TODO ***
@@ -380,7 +399,9 @@ combineTransformations = foldl (flip promoteUnary) id
     ...............*.....*.....*...
     ...............................
 
-    Răspuns: ...............
+    Răspuns: permite calcularea eficienta a apartenentei unui punct la regiunea construita prin reuniune
+    Haskell nu va calcula intreaga regiune daca un punct se afla in ea, in schimb va calcula doar partea
+    necesara pentru a determina daca punctul se afla in regiune sau nu
 -}
 circles :: Int -> Region
 circles n
@@ -395,7 +416,9 @@ circles n
     Explicați la prezentare cum se comportă reuniunea infinită de mai jos
     când se verifică apartenența unui punct care NU aparține regiunii.
 
-    Răspuns: ...............
+    Răspuns: se va incerca sa se determine daca punctul se afla in primul cerc, daca nu trece mai depart, samd
+    chiar daca regiunea nu este generata de la bun inceput si se genereaza pe masura ce se verifica apartenenta,
+    Haskell va incerca sa determine daca punctul se afla in regiunea respectiva => bucla infinita
 -}
 infiniteCircles :: Region
 infiniteCircles = union (circle 2)
